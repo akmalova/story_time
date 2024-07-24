@@ -309,13 +309,9 @@ class StoryPageFrameState extends State<StoryPageFrame>
         IndicatorAnimationCommand? command = widget.indicatorAnimationController?.value;
         if (command != null) {
           if (command.pause == true) {
-            WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-              animationController.stop();
-            });
+            animationController.stop();
           } else if (command.resume == true) {
-            WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-              animationController.forward();
-            });
+            animationController.forward();
           } else if (command.duration != null) {
             animationController.reset();
             animationController.duration = command.duration;
@@ -329,7 +325,6 @@ class StoryPageFrameState extends State<StoryPageFrame>
     )..addStatusListener(
         (status) {
           if (status == AnimationStatus.completed) {
-            print('qwerty forward');
             context
                 .read<StoryStackController>()
                 .increment(restartAnimation: () => animationController.forward(from: 0));
@@ -348,7 +343,6 @@ class StoryPageFrameState extends State<StoryPageFrame>
   @override
   void didUpdateWidget(covariant StoryPageFrame oldWidget) {
     if (!isInitialized && widget.isCurrentPage) {
-      print('qwerty onAnimationControllerInitialized');
       widget.onAnimationControllerInitialized?.call();
       isInitialized = true;
     }
