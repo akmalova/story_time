@@ -153,7 +153,22 @@ The package also supports adding callbacks for going a page backwards and for go
 The package also supports adding a callback for whenever the story index changes to the StoryPageView widget. See the example project for more details.
 
 ## Tips
-
 This package is still under development. If you have any requests or questions, please ask on [github](https://github.com/tjcampanella/story_time/issues)
 
-
+## Current fork fix
+Fixed a bug with the indicator animation controller. 
+Problem: if you change the controller parameters in the callback onStoryIndexChanged while changing the story page, nothing happened.
+Solution: use onAnimationControllerInitialized callback to change the controller parameters while changing the page.
+``` dart
+onAnimationControllerInitialized: () {
+  if (currentPageIndex == 1) {
+    indicatorAnimationController.value = IndicatorAnimationCommand(
+      duration: const Duration(seconds: 60),
+    );
+  } else {
+    indicatorAnimationController.value = IndicatorAnimationCommand(
+      duration: const Duration(seconds: 5),
+    );
+  }
+},
+```
