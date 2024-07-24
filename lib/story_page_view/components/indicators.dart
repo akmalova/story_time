@@ -30,11 +30,10 @@ class IndicatorsState extends State<Indicators> {
   void initState() {
     super.initState();
     widget.animationController!.forward();
-    indicatorAnimation =
-        Tween(begin: 0.0, end: 1.0).animate(widget.animationController!)
-          ..addListener(() {
-            setState(() {});
-          });
+    indicatorAnimation = Tween(begin: 0.0, end: 1.0).animate(widget.animationController!)
+      ..addListener(() {
+        if (mounted) setState(() {});
+      });
   }
 
   @override
@@ -44,14 +43,10 @@ class IndicatorsState extends State<Indicators> {
     if (!widget.isCurrentPage && widget.isPaging) {
       widget.animationController!.stop();
     }
-    if (!widget.isCurrentPage &&
-        !widget.isPaging &&
-        widget.animationController!.value != 0) {
+    if (!widget.isCurrentPage && !widget.isPaging && widget.animationController!.value != 0) {
       widget.animationController!.value = 0;
     }
-    if (widget.isCurrentPage &&
-        !widget.animationController!.isAnimating &&
-        !isStoryEnded) {
+    if (widget.isCurrentPage && !widget.animationController!.isAnimating && !isStoryEnded) {
       widget.animationController!.forward(from: 0);
     }
     return Padding(

@@ -9,8 +9,7 @@ import 'package:story_time/story_page_view/story_stack_controller.dart';
 import 'components/gestures.dart';
 import 'components/indicators.dart';
 
-typedef StoryItemBuilder = Widget Function(
-    BuildContext context, int pageIndex, int storyIndex);
+typedef StoryItemBuilder = Widget Function(BuildContext context, int pageIndex, int storyIndex);
 
 typedef StoryConfigFunction = int Function(int pageIndex);
 
@@ -28,8 +27,7 @@ class StoryPageView extends StatefulWidget {
     this.initialPage = 0,
     this.onPageLimitReached,
     this.indicatorDuration = const Duration(seconds: 5),
-    this.indicatorPadding =
-        const EdgeInsets.symmetric(vertical: 32, horizontal: 8),
+    this.indicatorPadding = const EdgeInsets.symmetric(vertical: 32, horizontal: 8),
     this.backgroundColor = Colors.black,
     this.indicatorAnimationController,
     this.onStoryPaused,
@@ -37,6 +35,7 @@ class StoryPageView extends StatefulWidget {
     this.onPageBack,
     this.onPageForward,
     this.onStoryIndexChanged,
+    this.onAnimationControllerInitialized,
   }) : super(key: key);
 
   /// Function to build story content
@@ -94,6 +93,9 @@ class StoryPageView extends StatefulWidget {
   /// Called whenever the user is clicks to go back or forward a story
   final void Function(int newStoryIndex)? onStoryIndexChanged;
 
+  /// Called whenever the indicator animation controller is initialized when the page changes
+  final void Function()? onAnimationControllerInitialized;
+
   @override
   StoryPageViewState createState() => StoryPageViewState();
 }
@@ -142,8 +144,7 @@ class StoryPageViewState extends State<StoryPageView> {
           final t = (index - currentPageValue);
           final rotationY = lerpDouble(0, 30, t)!;
           const maxOpacity = 0.8;
-          final num opacity =
-              lerpDouble(0, maxOpacity, t.abs())!.clamp(0.0, maxOpacity);
+          final num opacity = lerpDouble(0, maxOpacity, t.abs())!.clamp(0.0, maxOpacity);
           final isPaging = opacity != maxOpacity;
           final transform = Matrix4.identity();
           transform.setEntry(3, 2, 0.003);
@@ -160,8 +161,7 @@ class StoryPageViewState extends State<StoryPageView> {
                   pageIndex: index,
                   animateToPage: (index) {
                     pageController!.animateToPage(index,
-                        duration: const Duration(milliseconds: 500),
-                        curve: Curves.ease);
+                        duration: const Duration(milliseconds: 500), curve: Curves.ease);
                   },
                   isCurrentPage: currentPageValue == index,
                   isPaging: isPaging,
@@ -170,11 +170,11 @@ class StoryPageViewState extends State<StoryPageView> {
                   gestureItemBuilder: widget.gestureItemBuilder,
                   indicatorDuration: widget.indicatorDuration,
                   indicatorPadding: widget.indicatorPadding,
-                  indicatorAnimationController:
-                      widget.indicatorAnimationController,
+                  indicatorAnimationController: widget.indicatorAnimationController,
                   onStoryPaused: widget.onStoryPaused,
                   onStoryUnpaused: widget.onStoryUnpaused,
                   onStoryIndexChanged: widget.onStoryIndexChanged,
+                  onAnimationControllerInitialized: widget.onAnimationControllerInitialized,
                 ),
                 if (isPaging && !isLeaving)
                   Positioned.fill(
@@ -209,6 +209,7 @@ class StoryPageFrame extends StatefulWidget {
     required this.indicatorAnimationController,
     required this.onStoryPaused,
     required this.onStoryUnpaused,
+    this.onAnimationControllerInitialized,
   }) : super(key: key);
   final int storyLength;
   final int initialStoryIndex;
@@ -222,6 +223,7 @@ class StoryPageFrame extends StatefulWidget {
   final ValueNotifier<IndicatorAnimationCommand>? indicatorAnimationController;
   final Function()? onStoryPaused;
   final Function()? onStoryUnpaused;
+  final void Function()? onAnimationControllerInitialized;
 
   static Widget wrapped({
     required int pageIndex,
@@ -236,11 +238,11 @@ class StoryPageFrame extends StatefulWidget {
     StoryItemBuilder? gestureItemBuilder,
     required Duration indicatorDuration,
     required EdgeInsetsGeometry indicatorPadding,
-    required ValueNotifier<IndicatorAnimationCommand>?
-        indicatorAnimationController,
+    required ValueNotifier<IndicatorAnimationCommand>? indicatorAnimationController,
     required Function()? onStoryPaused,
     required Function()? onStoryUnpaused,
     required Function(int newStoryIndex)? onStoryIndexChanged,
+    required final void Function()? onAnimationControllerInitialized,
   }) {
     return MultiProvider(
       providers: [
@@ -258,9 +260,7 @@ class StoryPageFrame extends StatefulWidget {
             },
             onPageForward: () {
               if (pageIndex == pageLength - 1) {
-                context
-                    .read<StoryLimitController>()
-                    .onPageLimitReached(onPageLimitReached);
+                context.read<StoryLimitController>().onPageLimitReached(onPageLimitReached);
               } else {
                 animateToPage(pageIndex + 1);
               }
@@ -282,6 +282,7 @@ class StoryPageFrame extends StatefulWidget {
         indicatorAnimationController: indicatorAnimationController,
         onStoryPaused: onStoryPaused,
         onStoryUnpaused: onStoryUnpaused,
+        onAnimationControllerInitialized: onAnimationControllerInitialized,
       ),
     );
   }
@@ -291,21 +292,21 @@ class StoryPageFrame extends StatefulWidget {
 }
 
 class StoryPageFrameState extends State<StoryPageFrame>
-    with
-        AutomaticKeepAliveClientMixin<StoryPageFrame>,
-        SingleTickerProviderStateMixin {
+    with AutomaticKeepAliveClientMixin<StoryPageFrame>, SingleTickerProviderStateMixin {
   late AnimationController animationController;
 
   late VoidCallback listener;
 
+  late bool isInitialized;
+
   @override
   void initState() {
     super.initState();
+    isInitialized = false;
 
     listener = () {
       if (widget.isCurrentPage) {
-        IndicatorAnimationCommand? command =
-            widget.indicatorAnimationController?.value;
+        IndicatorAnimationCommand? command = widget.indicatorAnimationController?.value;
         if (command != null) {
           if (command.pause == true) {
             animationController.stop();
@@ -324,8 +325,9 @@ class StoryPageFrameState extends State<StoryPageFrame>
     )..addStatusListener(
         (status) {
           if (status == AnimationStatus.completed) {
-            context.read<StoryStackController>().increment(
-                restartAnimation: () => animationController.forward(from: 0));
+            context
+                .read<StoryStackController>()
+                .increment(restartAnimation: () => animationController.forward(from: 0));
           }
         },
       );
@@ -336,6 +338,14 @@ class StoryPageFrameState extends State<StoryPageFrame>
   void dispose() {
     widget.indicatorAnimationController?.removeListener(listener);
     super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(covariant StoryPageFrame oldWidget) {
+    if (!isInitialized && widget.isCurrentPage) {
+      widget.onAnimationControllerInitialized?.call();
+    }
+    super.didUpdateWidget(oldWidget);
   }
 
   @override

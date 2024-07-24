@@ -122,13 +122,15 @@ class StoryPageState extends State<StoryPage> {
       body: StoryPageView(
         onStoryIndexChanged: (int newStoryIndex) {
           print('newStoryInd: $newStoryIndex');
+        },
+        onAnimationControllerInitialized: () {
           if (currentPageIndex == 1) {
             indicatorAnimationController.value = IndicatorAnimationCommand(
               duration: const Duration(seconds: 120),
             );
           } else {
             indicatorAnimationController.value = IndicatorAnimationCommand(
-              duration: const Duration(seconds: 15),
+              duration: const Duration(seconds: 1),
             );
           }
         },
