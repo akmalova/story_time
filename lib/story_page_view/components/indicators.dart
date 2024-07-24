@@ -32,7 +32,7 @@ class IndicatorsState extends State<Indicators> {
     widget.animationController!.forward();
     indicatorAnimation = Tween(begin: 0.0, end: 1.0).animate(widget.animationController!)
       ..addListener(() {
-        if (mounted) setState(() {});
+        setState(() {});
       });
   }
 

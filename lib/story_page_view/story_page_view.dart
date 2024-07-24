@@ -344,6 +344,7 @@ class StoryPageFrameState extends State<StoryPageFrame>
   void didUpdateWidget(covariant StoryPageFrame oldWidget) {
     if (!isInitialized && widget.isCurrentPage) {
       widget.onAnimationControllerInitialized?.call();
+      isInitialized = true;
     }
     super.didUpdateWidget(oldWidget);
   }

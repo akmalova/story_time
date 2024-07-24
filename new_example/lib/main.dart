@@ -126,11 +126,11 @@ class StoryPageState extends State<StoryPage> {
         onAnimationControllerInitialized: () {
           if (currentPageIndex == 1) {
             indicatorAnimationController.value = IndicatorAnimationCommand(
-              duration: const Duration(seconds: 120),
+              duration: const Duration(seconds: 60),
             );
           } else {
             indicatorAnimationController.value = IndicatorAnimationCommand(
-              duration: const Duration(seconds: 1),
+              duration: const Duration(seconds: 5),
             );
           }
         },
