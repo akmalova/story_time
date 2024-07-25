@@ -157,8 +157,8 @@ This package is still under development. If you have any requests or questions, 
 
 ## Current fork fix
 Fixed a bug with the indicator animation controller. 
-Problem: if you change the controller parameters in the callback onStoryIndexChanged while changing the story page, nothing happened.
-Solution: use onAnimationControllerInitialized callback to change the controller parameters while changing the page.
+Problem: if you change the controller duration parameter in the callback onStoryIndexChanged while changing the story page, nothing happened.
+Solution: use onAnimationControllerInitialized callback to change the controller duration parameter while changing the page.
 ``` dart
 onAnimationControllerInitialized: () {
   if (currentPageIndex == 1) {
